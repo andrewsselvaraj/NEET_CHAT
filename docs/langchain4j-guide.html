@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A practical guide to LangChain4j and retrieval-augmented generation in NEET Paper Coach.">
+  <title>LangChain4j in NEET Paper Coach</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172b2a;
+      --muted: #526664;
+      --paper: #f7f6f0;
+      --surface: #fffefa;
+      --line: #d8e1d9;
+      --green: #176a57;
+      --green-soft: #e4f1e9;
+      --coral: #bd503e;
+      --coral-soft: #f9e9e3;
+      --gold: #d29b32;
+      --code: #183b36;
+      --shadow: 0 18px 48px rgba(24, 59, 54, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background-color: var(--paper);
+      background-image: linear-gradient(rgba(23, 106, 87, .035) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(23, 106, 87, .035) 1px, transparent 1px);
+      background-size: 28px 28px;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    a { color: var(--green); text-underline-offset: 3px; }
+    a:hover { color: var(--coral); }
+
+    .page { width: min(1080px, calc(100% - 40px)); margin: 0 auto; }
+
+    header {
+      padding: 64px 0 42px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(110deg, rgba(228, 241, 233, .93), rgba(255, 254, 250, .72) 62%, rgba(249, 233, 227, .62));
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.2; }
+    h1 { max-width: 760px; margin: 0; font-size: 48px; font-weight: 500; }
+    .lede { max-width: 720px; margin: 20px 0 0; color: var(--muted); font-size: 18px; }
+
+    .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .tag { padding: 4px 10px; border: 1px solid #b8d2c3; border-radius: 3px; color: var(--green); background: rgba(255, 254, 250, .74); font-size: 13px; }
+
+    main { padding: 34px 0 72px; }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      margin-bottom: 32px;
+      padding: 13px 16px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      font-size: 14px;
+    }
+    nav a { text-decoration: none; }
+
+    section { margin: 0 0 48px; scroll-margin-top: 20px; }
+    h2 { margin: 0 0 16px; font-size: 30px; font-weight: 500; }
+    h3 { margin: 0 0 8px; font-size: 21px; font-weight: 500; }
+    p { margin: 0 0 14px; }
+    .muted { color: var(--muted); }
+
+    .callout {
+      padding: 18px 20px;
+      border-left: 4px solid var(--gold);
+      background: #fff7df;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin: 22px 0;
+    }
+    .step {
+      min-height: 150px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--green);
+      background: var(--surface);
+    }
+    .step:nth-child(3) { border-top-color: var(--gold); }
+    .step:nth-child(4) { border-top-color: var(--coral); }
+    .step-number { display: block; margin-bottom: 10px; color: var(--green); font-size: 12px; font-weight: 700; }
+    .step p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+
+    .columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .panel { padding: 20px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+    .panel h3 { margin-bottom: 12px; }
+    ul, ol { margin: 8px 0 0; padding-left: 22px; }
+    li { margin: 5px 0; }
+
+    .code-label { margin: 18px 0 7px; color: var(--muted); font-size: 13px; font-weight: 700; }
+    pre {
+      overflow-x: auto;
+      margin: 0 0 18px;
+      padding: 17px 19px;
+      border: 1px solid #24574f;
+      border-radius: 3px;
+      color: #eef8ef;
+      background: var(--code);
+      font: 13px/1.65 Consolas, "Courier New", monospace;
+      tab-size: 4;
+    }
+    code { font-family: Consolas, "Courier New", monospace; }
+    p code, li code { padding: 2px 5px; border-radius: 2px; color: var(--code); background: var(--green-soft); font-size: .92em; }
+
+    .comparison { width: 100%; border-collapse: collapse; background: var(--surface); }
+    .comparison th, .comparison td { padding: 12px 14px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .comparison th { color: var(--green); background: var(--green-soft); }
+
+    .warning { padding: 18px 20px; border-left: 4px solid var(--coral); background: var(--coral-soft); }
+    footer { padding: 22px 0 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+
+    @media (max-width: 760px) {
+      .page { width: min(100% - 28px, 620px); }
+      header { padding: 42px 0 32px; }
+      h1 { font-size: 38px; }
+      .flow { grid-template-columns: 1fr; }
+      .step { min-height: auto; }
+      .columns { grid-template-columns: 1fr; }
+      nav { gap: 9px 15px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="page">
+      <p class="eyebrow">A code-connected guide</p>
+      <h1>LangChain4j in NEET Paper Coach</h1>
+      <p class="lede">What LangChain means, what the Java library does here, and how a student's question becomes an answer grounded in past NEET papers.</p>
+      <div class="meta" aria-label="Technology summary">
+        <span class="tag">Java 17</span>
+        <span class="tag">Spring Boot</span>
+        <span class="tag">LangChain4j</span>
+        <span class="tag">PDF retrieval + LLM</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <nav aria-label="On this page">
+      <a href="#concept">The concept</a>
+      <a href="#flow">Request flow</a>
+      <a href="#code">Where it lives</a>
+      <a href="#rag">RAG explained</a>
+      <a href="#limits">Limits and safety</a>
+    </nav>
+
+    <section id="concept">
+      <h2>First, what is LangChain?</h2>
+      <p><strong>LangChain</strong> is a family of libraries and patterns for building software around language models. It helps applications connect a model to prompts, retrieved information, tools, and (when configured) conversation history. The model itself is still the component that generates language; the framework helps the application prepare inputs and coordinate the work.</p>
+      <p>This project is written in Java, so it uses <strong>LangChain4j</strong>, a Java library in the same ecosystem. The name in this app is specifically LangChain4j, not the Python LangChain package.</p>
+      <div class="callout"><strong>In one sentence:</strong> NEET Paper Coach finds useful excerpts from its PDFs, packages the excerpts with the student's question, and asks a chat model to explain them.</div>
+    </section>
+
+    <section id="flow">
+      <h2>One question, end to end</h2>
+      <p class="muted">The paper search is local application code. LangChain4j is the adapter used for the final chat-model call.</p>
+      <div class="flow" aria-label="Question answering flow">
+        <article class="step"><span class="step-number">01 · WEB</span><h3>Question</h3><p>The browser submits the form to <code>POST /ask</code>.</p></article>
+        <article class="step"><span class="step-number">02 · CHECK</span><h3>Validate</h3><p><code>ChatController</code> trims the input and rejects empty or overlong questions.</p></article>
+        <article class="step"><span class="step-number">03 · RETRIEVE</span><h3>Find evidence</h3><p><code>QuestionPaperIndex</code> ranks local PDF passages and returns up to five matches.</p></article>
+        <article class="step"><span class="step-number">04 · GENERATE</span><h3>Ask the model</h3><p><code>ChatService</code> builds a grounded prompt; LangChain4j calls the configured API.</p></article>
+        <article class="step"><span class="step-number">05 · RESPOND</span><h3>Show answer</h3><p>The page renders the model's answer and paper/page references for the retrieved passages.</p></article>
+      </div>
+      <p>The whole PDF collection is <strong>not</strong> sent to the model. The app searches its local index first, then sends the student's question and only the selected text extracts.</p>
+    </section>
+
+    <section id="code">
+      <h2>Where the concepts live in this code</h2>
+      <div class="columns">
+        <article class="panel">
+          <h3>1. Model connection</h3>
+          <p><a href="../src/main/java/com/neetchat/config/LanguageModelConfiguration.java">LanguageModelConfiguration.java</a> creates a Spring bean of type <code>ChatLanguageModel</code>. That interface gives the rest of the application a consistent way to submit a prompt without building HTTP requests itself.</p>
+          <p>The implementation is <code>OpenAiChatModel</code>. Its settings include the API key, API base URL, and model name. These settings select the service/model; they do not contain the NEET papers or the app's retrieval logic.</p>
+        </article>
+        <article class="panel">
+          <h3>2. Retrieval and PDF indexing</h3>
+          <p><a href="../src/main/java/com/neetchat/search/QuestionPaperIndex.java">QuestionPaperIndex.java</a> uses Apache PDFBox to extract text at startup. It splits page text into chunks of about 1,200 characters with 180 characters of overlap, keeping the source filename and page number.</p>
+          <p>For a question, it tokenizes words, removes common stop words, and scores passages with a BM25-style lexical ranking formula. This is custom app code, not a LangChain4j vector database.</p>
+        </article>
+        <article class="panel">
+          <h3>3. Prompt and model call</h3>
+          <p><a href="../src/main/java/com/neetchat/chat/ChatService.java">ChatService.java</a> asks the index for five matches, labels each extract with a reference number, then puts the question and extracts into one prompt.</p>
+          <p>The prompt tells the model to use only those extracts, explain clearly, say when evidence is insufficient, and cite references such as <code>[1]</code>. The assembled context is capped at 8,000 characters.</p>
+        </article>
+        <article class="panel">
+          <h3>4. Web response</h3>
+          <p><a href="../src/main/java/com/neetchat/web/ChatController.java">ChatController.java</a> handles the form request and passes valid questions to <code>ChatService</code>. <code>ChatAnswer</code> carries the answer and <code>PaperCitation</code> entries back to the Thymeleaf page.</p>
+          <p>The source list is built from the retrieved passages, so the UI can show the paper and page associated with the evidence supplied to the model.</p>
+        </article>
+      </div>
+
+      <p class="code-label">Simplified version of the central operation in ChatService</p>
+      <pre><code>passages = questionPaperIndex.search(question, 5)
+context = formatPassagesWithPaperAndPage(passages)
+prompt = instructions + question + context
+answer = languageModel.generate(prompt)
+return answerAndCitations(answer, passages)</code></pre>
+
+      <p class="code-label">The LangChain4j model bean, simplified</p>
+      <pre><code>ChatLanguageModel model = OpenAiChatModel.builder()
+    .apiKey(apiKey)
+    .baseUrl(baseUrl)
+    .modelName(modelName)
+    .build();</code></pre>
+      <p>At startup, Spring creates this bean and injects it into <code>ChatService</code>. If no API key is configured, the application fails early with a clear configuration error rather than waiting for the first question.</p>
+    </section>
+
+    <section id="rag">
+      <h2>This pattern is called RAG</h2>
+      <p><strong>RAG</strong> means <em>Retrieval-Augmented Generation</em>. “Retrieval” finds relevant source material; “augmented” means that material is added to the model's input; “generation” is the model writing the response.</p>
+      <table class="comparison">
+        <thead><tr><th>Stage</th><th>In this app</th><th>Why it matters</th></tr></thead>
+        <tbody>
+          <tr><td>Prepare knowledge</td><td>Extract PDF text and split it into page-based chunks at startup.</td><td>Gives search smaller pieces to rank and preserves page references.</td></tr>
+          <tr><td>Retrieve</td><td>Rank chunks by matching words in the student's question.</td><td>Chooses a small evidence set instead of sending every paper.</td></tr>
+          <tr><td>Augment</td><td>Add the question and labeled extracts to the prompt.</td><td>Provides context that may not be in the model's training data.</td></tr>
+          <tr><td>Generate</td><td>Call <code>ChatLanguageModel.generate(prompt)</code>.</td><td>Turns the question and evidence into a readable explanation.</td></tr>
+          <tr><td>Attribute</td><td>Return citations containing the PDF filename and page number.</td><td>Lets the student check which retrieved paper pages informed the response.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="limits">
+      <h2>What this implementation does not do</h2>
+      <ul>
+        <li><strong>No semantic embeddings or vector database:</strong> retrieval is lexical, so it is strongest when the question shares important words with a passage. A concept phrased very differently may be missed.</li>
+        <li><strong>No agent or tool loop:</strong> the model is asked once to generate an answer; it is not choosing and invoking tools or planning multiple steps.</li>
+        <li><strong>No conversation memory:</strong> each submitted question is handled as a separate prompt. Earlier questions are not automatically added to later ones.</li>
+        <li><strong>No OCR:</strong> scanned image-only PDFs have no searchable text until OCR is performed.</li>
+      </ul>
+      <div class="warning"><strong>Grounding is guidance, not a guarantee.</strong> The prompt asks the model not to guess and to cite supplied extracts, but language models can still make mistakes. Check the displayed source pages for important exam preparation decisions.</div>
+    </section>
+
+    <section>
+      <h2>Configuration and data flow</h2>
+      <p>The model settings come from Spring properties or environment variables: the API key can be supplied as <code>OPENAI_API_KEY</code> or <code>NEET_LLM_API_KEY</code>; the endpoint and model can be set with <code>NEET_LLM_BASE_URL</code> and <code>NEET_LLM_MODEL</code>. The papers directory defaults to <code>Questions</code>.</p>
+      <p>Keep API keys outside source code and do not commit them. For a hosted model API, the student's question and the retrieved excerpts are sent to that configured service for generation; the full PDF folder is not uploaded by this retrieval flow.</p>
+    </section>
+
+    <footer>
+      <div>Guide for the current NEET Paper Coach implementation. Relevant code links are relative to this document.</div>
+    </footer>
+  </main>
+</body>
+</html>
