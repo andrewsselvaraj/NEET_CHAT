@@ -136,12 +136,16 @@
         }
         .sources li { margin-top: 6px; color: var(--muted); font-size: 13px; }
         .error {
-            margin-top: 18px;
-            border: 1px solid #edc7bd;
-            border-radius: 10px;
-            padding: 12px 14px;
-            background: #fff7f4;
-            color: #8d3424;
+            margin: 0 0 18px;
+            border: 1px solid #c62828;
+            border-left: 6px solid #c62828;
+            border-radius: 12px;
+            padding: 14px 16px;
+            background: #fff3f2;
+            color: #8f1d1d;
+            font-weight: 700;
+            display: block;
+            box-shadow: 0 8px 20px rgba(198, 40, 40, 0.08);
         }
         @media (max-width: 560px) {
             main { padding-top: 42px; }
@@ -163,6 +167,8 @@
     <h1>Make every NEET question a learning moment.</h1>
     <p class="intro">Ask about a question or concept. Get a clear explanation grounded in the indexed NEET papers and solutions.</p>
 
+    <div class="error" role="alert" th:if="${error}" th:text="${error}"></div>
+
     <form class="question-card" method="post" action="/ask">
         <label for="question">What would you like help with?</label>
         <textarea id="question" name="question" maxlength="1000" required
@@ -173,8 +179,6 @@
             <button type="submit">Get an explanation <span aria-hidden="true">→</span></button>
         </div>
     </form>
-
-    <div class="error" role="alert" th:if="${error}" th:text="${error}"></div>
 
     <section class="result-card" aria-live="polite" th:if="${answer}">
         <h2>Study answer</h2>

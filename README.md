@@ -10,10 +10,12 @@ A Spring Boot and Thymeleaf chatbot that retrieves passages from past NEET paper
 
 ## Run
 
-Set `OPENAI_API_KEY` in your environment, then run from the repository root:
+Set a real API key in your environment, then run from the repository root. The app accepts either `OPENAI_API_KEY` or `NEET_LLM_API_KEY`:
 
 ```powershell
 $env:OPENAI_API_KEY = "your-api-key"
+# or
+$env:NEET_LLM_API_KEY = "your-api-key"
 mvn spring-boot:run
 ```
 
@@ -26,6 +28,7 @@ The app indexes text-readable PDF files beneath `Questions` at startup. Scanned/
 | Environment variable | Default | Purpose |
 | --- | --- | --- |
 | `OPENAI_API_KEY` | — | Required API key |
+| `NEET_LLM_API_KEY` | — | Alternate project-specific API key variable |
 | `NEET_LLM_BASE_URL` | `https://api.openai.com/v1` | OpenAI-compatible API base URL |
 | `NEET_LLM_MODEL` | `gpt-4o-mini` | Chat model name |
 | `NEET_DOCUMENTS_DIRECTORY` | `Questions` | Directory containing source PDFs |
