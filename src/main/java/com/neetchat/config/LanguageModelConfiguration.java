@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class LanguageModelConfiguration {
 
     @Bean
-    ChatLanguageModel chatLanguageModel(
+    public ChatLanguageModel chatLanguageModel(
             @Value("${neet.llm.api-key:${openai.api-key:${NEET_LLM_API_KEY:${OPENAI_API_KEY:}}}}") String apiKey,
             @Value("${neet.llm.base-url:https://api.openai.com/v1}") String baseUrl,
             @Value("${neet.llm.model:gpt-4o-mini}") String modelName) {

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -37,6 +38,8 @@ public class QuestionPaperIndex {
 
     private final Path documentsDirectory;
     private volatile List<PaperPassage> passages = List.of();
+    private volatile Map<String, Path> paperFiles = Map.of();
+    private volatile List<IndexedPaper> papers = List.of();
 
     public QuestionPaperIndex(@Value("${neet.documents.directory:Questions}") String documentsDirectory) {
         this.documentsDirectory = Path.of(documentsDirectory);
@@ -51,11 +54,18 @@ public class QuestionPaperIndex {
         }
 
         List<PaperPassage> loadedPassages = new ArrayList<>();
+        Map<String, Path> loadedPaperFiles = new LinkedHashMap<>();
+        List<IndexedPaper> loadedPapers = new ArrayList<>();
         try (Stream<Path> files = Files.walk(documentsDirectory)) {
             files.filter(Files::isRegularFile)
                     .filter(path -> path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".pdf"))
                     .sorted()
-                    .forEach(path -> indexPdf(path, loadedPassages));
+                    .forEach(path -> {
+                        IndexedPaper paper = indexPdf(path, loadedPassages);
+                        if (paper != null && loadedPaperFiles.putIfAbsent(paper.name(), path) == null) {
+                            loadedPapers.add(paper);
+                        }
+                    });
         } catch (IOException exception) {
             throw new IllegalStateException(
                     "Unable to read NEET papers directory: " + documentsDirectory.toAbsolutePath(),
@@ -63,6 +73,8 @@ public class QuestionPaperIndex {
         }
 
         passages = List.copyOf(loadedPassages);
+        paperFiles = Map.copyOf(loadedPaperFiles);
+        papers = List.copyOf(loadedPapers);
         LOGGER.info("Indexed {} text passages from NEET papers in '{}'.",
                 passages.size(), documentsDirectory.toAbsolutePath());
         if (passages.isEmpty()) {
@@ -115,7 +127,30 @@ public class QuestionPaperIndex {
         return List.copyOf(results);
     }
 
-    private void indexPdf(Path path, List<PaperPassage> destination) {
+    public List<IndexedPaper> papers() {
+        return papers;
+    }
+
+    public String pageText(String paper, int page) {
+        Path path = paperFiles.get(paper);
+        if (path == null) {
+            throw new IllegalArgumentException("Unknown paper '" + paper + "'.");
+        }
+        try (PDDocument document = PDDocument.load(path.toFile(), MemoryUsageSetting.setupTempFileOnly())) {
+            if (page < 1 || page > document.getNumberOfPages()) {
+                throw new IllegalArgumentException("Paper '" + paper + "' has pages 1 to "
+                        + document.getNumberOfPages() + "; page " + page + " does not exist.");
+            }
+            PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setStartPage(page);
+            stripper.setEndPage(page);
+            return stripper.getText(document).trim();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to read NEET paper '" + paper + "'.", exception);
+        }
+    }
+
+    private IndexedPaper indexPdf(Path path, List<PaperPassage> destination) {
         int passagesBefore = destination.size();
         try (PDDocument document = PDDocument.load(path.toFile(), MemoryUsageSetting.setupTempFileOnly())) {
             PDFTextStripper stripper = new PDFTextStripper();
@@ -131,8 +166,10 @@ public class QuestionPaperIndex {
             } else {
                 LOGGER.info("Indexed {} passages from '{}'.", indexedCount, path.getFileName());
             }
+            return new IndexedPaper(path.getFileName().toString(), document.getNumberOfPages(), indexedCount);
         } catch (IOException exception) {
             LOGGER.error("Unable to extract text from NEET paper '{}'.", path.toAbsolutePath(), exception);
+            return null;
         }
     }
 
