@@ -33,6 +33,10 @@ The app indexes text-readable PDF files beneath `Questions` at startup. Scanned/
 | `NEET_LLM_MODEL` | `gpt-4o-mini` | Chat model name |
 | `NEET_DOCUMENTS_DIRECTORY` | `Questions` | Directory containing source PDFs |
 
+## Use with Claude (MCP server)
+
+The same jar also runs as an MCP server, so Claude Desktop or Claude Code can search and read the papers directly. See [mcp_server/README.md](mcp_server/README.md).
+
 ## Test
 
 ```powershell
