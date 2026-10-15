@@ -1,0 +1,21 @@
+# HTTPS route; the host is generated as neet-chat-<project>.<cluster apps domain>.
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: neet-chat
+  labels:
+    app: neet-chat
+  annotations:
+    # LLM answers can take longer than the router's 30s default.
+    haproxy.router.openshift.io/timeout: 5m
+spec:
+  to:
+    kind: Service
+    name: neet-chat
+    weight: 100
+  port:
+    targetPort: 8080-tcp
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None

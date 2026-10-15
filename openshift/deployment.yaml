@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neet-chat
+  labels:
+    app: neet-chat
+  annotations:
+    # Redeploy whenever a build pushes a new neet-chat:latest.
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"neet-chat:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"neet-chat\")].image"}]
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: neet-chat
+  template:
+    metadata:
+      labels:
+        deployment: neet-chat
+    spec:
+      containers:
+        - name: neet-chat
+          image: neet-chat:latest
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: NEET_LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: neet-chat-secrets
+                  key: NEET_LLM_API_KEY
+          # Indexing the question papers takes about 40s at startup.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 1000Mi
