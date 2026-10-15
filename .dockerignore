@@ -1,0 +1,8 @@
+target/
+.git/
+.idea/
+.vscode/
+docs/
+src/main/resources/application.properties
+src/main/resources/application_prod*.properties
+src/main/resources/application-prod.properties
